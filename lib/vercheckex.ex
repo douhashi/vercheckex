@@ -1,28 +1,28 @@
-defmodule VercheckEx do
+defmodule Vercheckex do
   require HTTPoison
   require Floki
   require Timex
+  require IEx
   use Timex
 
   def fetch_content( url, type ) do
     ret = HTTPoison.get!( url )
     %HTTPoison.Response { status_code: 200, body: body } = ret
 
-    { _, _, n } = Floki.find( body, "[itemprop=title]" ) |> List.first
+    { _, _, n } = Floki.find( body, "[itemprop=name] a" ) |> List.first
     { _, date } = Floki.find( body, "time" ) |> Floki.attribute( "datetime" )
                                            |> List.first
                                            |> Timex.DateFormat.parse( "{ISOz}" )
 
     if( type == :type1 ) do
-      { _, _, x } = Floki.find( body, ".tag-name span" ) |> List.first
+      { _, _, x } = Floki.find( body, ".tag-name" ) |> List.first
     else
-      { _, _, x } = Floki.find( body, ".css-truncate-target span" ) |> List.first
+      { _, _, x } = Floki.find( body, ".release-title a" ) |> List.first
     end
 
     date |> Timex.Date.Convert.to_erlang_datetime
-         |> Timex.Date.from "Asia/Tokyo"
 
-    { hd( n ), hd(x), date }
+    { hd( n ), hd( x ), date }
   end
 
   def put_a_formatted_line( val ) do
@@ -36,11 +36,6 @@ defmodule VercheckEx do
       l = l <> "\t"
     end
     l = l <> "\t" <> Timex.DateFormat.format!( date, "%Y.%m.%d", :strftime )
-    now = Timex.Date.now( "JST" )
-    diff  Timex.Date.diff( date, now, days )
-    if diff < 14 do
-      l = l <> "\t<<<<< updated at " <> Integer.to_string( diff ) <> " day(s) ago."
-    end
 
     IO.puts( l )
   end
@@ -56,7 +51,7 @@ urls = [
   {"https://github.com/riot/riot/releases", :type1},
   {"https://github.com/atom/atom/releases", :type2},
   {"https://github.com/Microsoft/TypeScript/releases", :type2},
-  {"https://github.com/docker/docker/releases", :type1},
+  {"https://github.com/docker/docker/releases", :type2},
   {"https://github.com/JuliaLang/julia/releases", :type2},
   {"https://github.com/nim-lang/Nim/releases", :type1},
   {"https://github.com/elixir-lang/elixir/releases", :type2},
@@ -64,8 +59,9 @@ urls = [
   {"https://github.com/takscape/elixir-array/releases", :type2},
 ]
 
+HTTPoison.start
 Enum.each( urls, fn( i ) ->
   { u, t } = i
-  res = VercheckEx.fetch_content( u, t )
-  VercheckEx.put_a_formatted_line res
+  res = Vercheckex.fetch_content( u, t )
+  Vercheckex.put_a_formatted_line res
 end)

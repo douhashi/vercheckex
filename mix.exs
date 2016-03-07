@@ -14,7 +14,7 @@ defmodule Vercheckex.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :httpoison, :timex]]
   end
 
   # Dependencies can be Hex packages:
@@ -30,7 +30,7 @@ defmodule Vercheckex.Mixfile do
     [
       {:httpoison, "~> 0.8.0"},
       {:floki, "~> 0.8"},
-      {:timex, "~> 2.0.0"}
+      {:timex, "~> 1.0.2"}
     ]
   end
 end
